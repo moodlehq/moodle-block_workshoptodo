@@ -47,9 +47,9 @@ const render = async(root) => {
  *
  * @param {Object} props Props passed in by the react helper.
  * @param {String} props.selector The block's unique root selector.
- * @returns {Promise<void>}
+ * @returns {null}
  */
-export const init = async(props) => {
+export const init = (props) => {
     const container = document.querySelector(props.selector);
     const root = container.querySelector('.workshop-todo');
     const form = container.querySelector('[data-region="add-todo-form"]');
@@ -68,7 +68,9 @@ export const init = async(props) => {
         await render(root);
     });
 
-    await render(root);
+    void render(root);
+
+    return null;
 };
 
 export default init;
