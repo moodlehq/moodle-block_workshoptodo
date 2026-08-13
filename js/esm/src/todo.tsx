@@ -45,11 +45,12 @@ const render = async(root) => {
 /**
  * Start a todo block instance.
  *
- * @param {String} selector The block's unique root selector.
+ * @param {Object} props Props passed in by the react helper.
+ * @param {String} props.selector The block's unique root selector.
  * @returns {Promise<void>}
  */
-export const init = async(selector) => {
-    const container = document.querySelector(selector);
+export const init = async(props) => {
+    const container = document.querySelector(props.selector);
     const root = container.querySelector('.workshop-todo');
     const form = container.querySelector('[data-region="add-todo-form"]');
 
