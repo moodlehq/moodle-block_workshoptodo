@@ -9,7 +9,24 @@
 import {useEffect, useState} from 'react';
 import * as Repository from '@moodle/lms/block_workshoptodo/repository';
 
-const TodoList = ({todos, rootid, onDelete, onToggle}) => (
+type Todo = {
+    id: number;
+    text: string;
+    completed: boolean;
+};
+
+type TodoListProps = {
+    todos: Todo[];
+    rootid: string;
+    onDelete: (id: number) => Promise<void>;
+    onToggle: (todo: Todo, completed: boolean) => Promise<void>;
+};
+
+type Props = {
+    rootid: string;
+}
+
+const TodoList = ({todos, rootid, onDelete, onToggle}: TodoListProps) => (
     <ul className="list-group mb-3 workshop-todo" aria-label="Todo list">
         {todos.map((todo) => (
             <li key={todo.id} className="list-group-item d-flex align-items-center justify-content-between">
@@ -38,8 +55,8 @@ const TodoList = ({todos, rootid, onDelete, onToggle}) => (
     </ul>
 );
 
-const TodoApp = ({rootid}) => {
-    const [todos, setTodos] = useState([]);
+const TodoApp = ({rootid}: Props) => {
+    const [todos, setTodos] = useState<Todo[]>([]);
 
     const loadTodos = async () => {
         setTodos(await Repository.getTodos());
@@ -49,12 +66,12 @@ const TodoApp = ({rootid}) => {
         void loadTodos();
     }, []);
 
-    const handleToggle = async(todo, completed) => {
+    const handleToggle = async(todo: Todo, completed: boolean) => {
         await Repository.updateTodo({...todo, completed});
         await loadTodos();
     };
 
-    const handleDelete = async(id) => {
+    const handleDelete = async(id: number) => {
         await Repository.deleteTodo(id);
         await loadTodos();
     };
