@@ -6,6 +6,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+import { Button, Checkbox } from '@moodlehq/design-system';
+
 type Todo = {
     id: number;
     text: string;
@@ -23,24 +25,14 @@ const TodoList = ({todos, rootid, onDelete, onToggle}: Props) => (
     <ul className="list-group mb-3 workshop-todo" aria-label="Todo list">
         {todos.map((todo) => (
             <li key={todo.id} className="list-group-item d-flex align-items-center justify-content-between">
-                <div className="form-check mb-0">
-                    <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id={`todo-${rootid}-${todo.id}`}
-                        checked={todo.completed}
-                        onChange={(event) => void onToggle(todo, event.target.checked)}
-                    />
-                    <label
-                        className={`form-check-label ${todo.completed ? 'text-decoration-line-through' : ''}`}
-                        htmlFor={`todo-${rootid}-${todo.id}`}
-                    >
-                        {todo.text}
-                    </label>
-                </div>
-                <button className="btn btn-outline-danger btn-sm" type="button" onClick={() => void onDelete(todo.id)}>
-                    Delete
-                </button>
+                <Checkbox
+                    className={`${todo.completed ? 'text-decoration-line-through' : ''}`}
+                    id={`todo-${rootid}-${todo.id}`}
+                    checked={todo.completed}
+                    onChange={(event) => void onToggle(todo, event.target.checked)}
+                    label={todo.text}
+                />
+                <Button label="Delete" variant="outline-danger" size="sm" onClick={() => void onDelete(todo.id)} />
             </li>
         ))}
     </ul>
