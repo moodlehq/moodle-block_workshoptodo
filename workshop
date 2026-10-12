@@ -4,6 +4,10 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${root}"
 
+# Paths inside the Moodle container.
+plugin_js="/var/www/html/public/blocks/workshoptodo/js"
+theme_overrides="/var/www/html/public/theme/classic/js/esm/src/overrides/block_workshoptodo"
+
 usage() {
     cat <<'EOF'
 Usage: ./workshop COMMAND
@@ -15,47 +19,114 @@ Commands:
   checkpoint REF        Switch to a checkpoint branch or commit hash
   build                 Build the JavaScript for this plugin
   purge                 Purge Moodle caches
+  swizzle [ARGS...]     Run Moodle's swizzle script (theme overrides)
+                        Wrappers for theme_classic appear in ./theme-overrides
   shell                 Open a shell in the Moodle container
   logs                  Follow the Moodle container logs
 EOF
+}
+
+# Files created inside the container are owned by root. Hand the ones that
+# live in folders shared with this machine back to the current user, so git
+# and your editor can change them.
+fix_ownership() {
+    docker compose exec -T -e OWNER="$(id -u):$(id -g)" moodle sh -c '
+        for dir in "$@"; do
+            if [ -d "$dir" ]; then chown -R "$OWNER" "$dir"; fi
+        done
+    ' _ "${plugin_js}" "${theme_overrides}"
+}
+
+show_login() {
+    local wwwroot password
+    wwwroot=$(docker compose exec -T moodle printenv MOODLE_WWWROOT || echo "http://localhost:8080")
+    password=$(docker compose exec -T moodle printenv MOODLE_ADMIN_PASSWORD || echo "(see compose.yaml or .env)")
+    echo "Moodle is starting at ${wwwroot}"
+    echo "Username: admin"
+    echo "Password: ${password}"
+}
+
+wait_ready() {
+    echo "Waiting for Moodle to finish installing and upgrading (the first start takes a few minutes)..."
+    local waited=0 state errors
+    until docker compose exec -T moodle curl -fs -o /dev/null http://localhost/login/index.php 2>/dev/null; do
+        # The container stopped: the start-up script failed.
+        state=$(docker compose ps -a --format '{{.State}}' moodle 2>/dev/null || true)
+        if [[ "${state}" == "exited" || "${state}" == "dead" ]]; then
+            echo "Moodle stopped while starting. Last log lines:" >&2
+            docker compose logs --tail 30 moodle >&2
+            echo "Run ./workshop reset to start again." >&2
+            exit 1
+        fi
+
+        # Moodle printed an error during install or upgrade.
+        errors=$(docker compose logs --tail 50 moodle 2>/dev/null |
+            grep -E 'Default exception handler|PHP Fatal error|!!! ' || true)
+        if [[ -n "${errors}" ]]; then
+            echo "Moodle reported an error while starting:" >&2
+            echo "${errors}" >&2
+            echo "See ./workshop logs for the full output." >&2
+            exit 1
+        fi
+
+        sleep 5
+        waited=$((waited + 5))
+        if (( waited % 30 == 0 )); then
+            echo "  still working ($((waited))s): $(docker compose logs --tail 1 --no-log-prefix moodle 2>/dev/null)"
+        fi
+        if (( waited >= 600 )); then
+            echo "Moodle still isn't ready after 10 minutes. Check ./workshop logs." >&2
+            exit 1
+        fi
+    done
 }
 
 case "${1:-}" in
     start)
         docker compose pull
         docker compose up -d
-        echo "Moodle is starting at ${MOODLE_WWWROOT:-http://localhost:${MOODLE_PORT:-8080}}"
-        echo "Username: admin"
-        echo "Password: MoodleMoot!2026"
+        wait_ready
+        show_login
         ;;
     stop) docker compose down ;;
     reset)
         docker compose down --volumes
         docker compose up -d
+        wait_ready
+        show_login
         ;;
     checkpoint)
         checkpoint="${2:-}"
         case "${checkpoint}" in
-            master|01-esm|02-react|03-theming)
+            main|01-esm|02-react|03-theming|04-design-system)
                 git switch "${checkpoint}"
                 ;;
             *)
                 if [[ ! "${checkpoint}" =~ ^[0-9a-fA-F]{7,40}$ ]] ||
                     ! git rev-parse --verify --quiet "${checkpoint}^{commit}" >/dev/null; then
-                    echo "Choose master, 01-esm, 02-react, or 03-theming, or provide a valid commit hash." >&2
+                    echo "Choose main, 01-esm, 02-react, 03-theming, or 04-design-system, or provide a valid commit hash." >&2
                     exit 1
                 fi
                 git switch --detach "${checkpoint}"
                 ;;
         esac
+        wait_ready
         docker compose exec moodle php admin/cli/upgrade.php --non-interactive
         docker compose exec moodle npx grunt esm
+        fix_ownership
         docker compose exec moodle php admin/cli/purge_caches.php
         ;;
     build)
         docker compose exec moodle npx grunt esm
+        fix_ownership
         ;;
     purge) docker compose exec moodle php admin/cli/purge_caches.php ;;
+    swizzle)
+        shift
+        docker compose exec moodle node scripts/swizzle.mjs "$@" || status=$?
+        fix_ownership
+        exit "${status}"
+        ;;
     shell) docker compose exec moodle bash ;;
     logs) docker compose logs --follow moodle ;;
     *) usage; exit 1 ;;

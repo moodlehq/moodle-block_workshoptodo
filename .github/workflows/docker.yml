@@ -2,7 +2,7 @@ name: Publish workshop image
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     paths:
       - Dockerfile
       - docker/**
@@ -30,6 +30,6 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/abgreeve/workshoptodo:latest
+          tags: ghcr.io/moodlehq/moodle-block_workshoptodo:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max

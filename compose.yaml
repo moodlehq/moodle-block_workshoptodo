@@ -16,7 +16,7 @@ services:
       - database_data:/var/lib/postgresql/data
 
   moodle:
-    image: ghcr.io/abgreeve/workshoptodo:latest
+    image: ghcr.io/moodlehq/moodle-block_workshoptodo:latest
     build:
       context: .
     depends_on:
@@ -28,6 +28,7 @@ services:
       MOODLE_DB_NAME: moodle
       MOODLE_DB_USER: moodle
       MOODLE_DB_PASSWORD: moodle
+      MOODLE_ADMIN_PASSWORD: ${MOODLE_ADMIN_PASSWORD:-WorkshopT0d0!123}
     ports:
       - "${MOODLE_PORT:-8080}:80"
     volumes:

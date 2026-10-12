@@ -1,23 +1,16 @@
-# MoodleMoot Italia: JavaScript to React workshop
+# Moodle JavaScript to React workshop
 
-This repository contains the materials for the hands-on **JavaScript to React** workshop at MoodleMoot Italia 2026.
+This repository contains the materials for the hands-on **JavaScript to React** course.
 
 During the workshop we will progressively update a simple Moodle block to explore modern Moodle frontend development, moving from the existing JavaScript approach through ES modules, React, and theming.
 
-The repository contains four workshop checkpoints:
+The repository contains five workshop checkpoints:
 
-* `master` — starting point
+* `main` — starting point
 * `01-esm` — ES modules
 * `02-react` — React
 * `03-theming` — React theming
-
-## Before the workshop
-
-Please prepare and test your development environment **before attending the workshop**.
-
-This is a hands-on development workshop and assumes that you are already comfortable working with Moodle source code. There will not be enough time during the workshop to set up or troubleshoot individual Moodle development environments.
-
-You do not need previous experience with React.
+* `04-design-system` — Moodle Design System
 
 ## Recommended setup: your existing Moodle development environment
 
@@ -54,7 +47,7 @@ From your Moodle source directory:
 
 ```bash id="ur7wfs"
 cd public/blocks
-git clone https://github.com/abgreeve/workshoptodo.git
+git clone https://github.com/moodlehq/moodle-block_workshoptodo.git workshoptodo
 ```
 
 This should create:
@@ -88,8 +81,8 @@ You will need Docker and Git installed.
 Clone the repository:
 
 ```bash id="87at6g"
-git clone https://github.com/abgreeve/workshoptodo.git
-cd workshoptodo
+git clone https://github.com/moodlehq/moodle-block_workshoptodo.git
+cd moodle-block_workshoptodo
 ```
 
 Start the workshop environment:
@@ -119,7 +112,7 @@ http://localhost:8080
 Log in with:
 
 * **Username:** `admin`
-* **Password:** `MoodleMoot!2026`
+* **Password:** `WorkshopT0d0!123`
 
 Add the **Workshop todo** block to a page to confirm that the environment is working.
 
@@ -167,7 +160,7 @@ again.
 We will work through the different checkpoints together:
 
 ```text id="cpl5pi"
-master → 01-esm → 02-react → 03-theming
+master → 01-esm → 02-react → 03-theming → 04-design-system
 ```
 
 You will make the changes yourself during the exercises. The checkpoint branches provide working versions that we can switch to as we progress through the workshop.

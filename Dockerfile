@@ -2,7 +2,9 @@ FROM node:22-bookworm AS node
 FROM composer:2 AS composer
 FROM moodlehq/moodle-php-apache:8.4
 
-ARG MOODLE_REF=6216fe4ed19a5a3c88c0951d1647e9f2d626bcbb
+LABEL org.opencontainers.image.source=https://github.com/moodlehq/moodle-block_workshoptodo
+
+ARG MOODLE_REF=v5.3.0
 
 USER root
 COPY --from=node /usr/local/ /usr/local/

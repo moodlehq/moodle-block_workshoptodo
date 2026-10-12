@@ -25,5 +25,6 @@ $CFG->debug = E_ALL;
 $CFG->debugdisplay = 1;
 $CFG->cachejs = false;
 $CFG->themedesignermode = false;
+$CFG->cachetemplates = false;
 
 require_once(__DIR__ . '/lib/setup.php');
