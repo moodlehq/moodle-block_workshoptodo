@@ -34,6 +34,7 @@ services:
     volumes:
       - moodle_data:/var/www/moodledata
       - .:/var/www/html/public/blocks/workshoptodo
+      - ./theme-overrides:/var/www/html/public/theme/classic/js/esm/src/overrides/block_workshoptodo
 
 volumes:
   database_data:
