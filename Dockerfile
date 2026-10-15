@@ -5,6 +5,7 @@ FROM moodlehq/moodle-php-apache:8.4
 LABEL org.opencontainers.image.source=https://github.com/moodlehq/moodle-block_workshoptodo
 
 ARG MOODLE_REF=v5.3.0
+ARG CLASSIC_REF=main
 
 USER root
 COPY --from=node /usr/local/ /usr/local/
@@ -23,6 +24,11 @@ RUN apt-get update \
     && composer install --no-interaction --prefer-dist \
     && npm ci \
     && rm -rf /root/.cache /root/.composer/cache /root/.npm
+
+RUN git clone https://github.com/moodlehq/moodle-theme_classic.git /var/www/html/public/theme/classic \
+    && cd /var/www/html/public/theme/classic \
+    && git checkout "${CLASSIC_REF}" \
+    && rm -rf .git
 
 COPY docker/config.php /var/www/html/config.php
 COPY docker/workshop-install.sh /docker-entrypoint.d/40-workshop-install.sh
